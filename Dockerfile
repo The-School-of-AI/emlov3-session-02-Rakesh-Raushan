@@ -1,6 +1,10 @@
-FROM ubuntu:latest
+FROM python:3.9-slim-buster
 
 WORKDIR /workspace
-COPY train.py /workspace/
 
-CMD ["python", "train.py"]
+COPY requirements.txt requirements.txt
+
+RUN pip3 install torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu && \
+    rm -rf /root/.cache/pip/*
+
+COPY train.py /workspace/
