@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader
 class Net(torch.nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        # TODO: Define your model architecture here
         self.conv1 = torch.nn.Conv2d(1, 32, 3, 1)
         self.conv1 = torch.nn.Conv2d(1, 32, 3, 1)
         self.conv2 = torch.nn.Conv2d(32, 64, 3, 1)
@@ -20,7 +19,6 @@ class Net(torch.nn.Module):
         self.fc2 = torch.nn.Linear(128, 10)
 
     def forward(self, x):
-        # TODO: Define the forward pass
         x = self.conv1(x)
         x = F.relu(x)
         x = self.conv2(x)
@@ -36,7 +34,6 @@ class Net(torch.nn.Module):
         return output
 
 def train_epoch(epoch, args, model, device, data_loader, optimizer):
-    # TODO: Implement the training loop here
     model.train()
     pid = os.getpid()
     for batch_idx, (data, target) in enumerate(data_loader):
@@ -53,7 +50,6 @@ def train_epoch(epoch, args, model, device, data_loader, optimizer):
                 break
 
 def test_epoch(model, device, data_loader):
-    # TODO: Implement the testing loop here
     model.eval()
     test_loss = 0
     correct = 0
@@ -65,14 +61,13 @@ def test_epoch(model, device, data_loader):
             correct += pred.eq(target.to(device)).sum().item()
 
     test_loss /= len(data_loader.dataset)
-    print('\\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\\n'.format(
+    print('\n Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%) \n'.format(
         test_loss, correct, len(data_loader.dataset),
         100. * correct / len(data_loader.dataset)))
 
 def main():
     # Parser to get command line arguments
     parser = argparse.ArgumentParser(description='MNIST Training Script')
-    # TODO: Define your command line arguments here
     parser.add_argument('--batch-size', type=int, default=64, metavar='N',
                     help='input batch size for training (default: 64)')
     parser.add_argument('--epochs', type=int, default=1, metavar='N',
@@ -95,7 +90,6 @@ def main():
     torch.manual_seed(args.seed)
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    # TODO: Load the MNIST dataset for training and testing
     transform=transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
@@ -116,29 +110,20 @@ def main():
     # TODO: Add a way to load the model checkpoint if 'resume' argument is True
     past_epochs = 0
     if args.resume:
-        checkpoints = glob.glob('/workspace/mnist_cnn_epoch_*.pth')  # Get a list of all checkpoint files
-        if checkpoints:
-            past_epochs = len(checkpoints)
-            checkpoints.sort()  # Sort the checkpoints based on file names
-            latest_checkpoint = checkpoints[-1]  # Select the latest checkpoint
+        try:
+            last_checkpoint = "/workspace/model_checkpoint.pth"  # Get a list of all checkpoint files
             checkpoint = torch.load(latest_checkpoint)
-            model.load_state_dict(checkpoint)
-            # Additional code to resume training or use the loaded model
-        else:
-            print("No checkpoint found.")
+            model.load_state_dict(checkpoint)        
+        except:
+            print("No checkpoint found to resume from.")
     
 
-    # TODO: Choose and define the optimizer here
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
     
-    # TODO: Implement the training and testing cycles
     for epoch in range(1, args.epochs + 1):
-        epoch_save_num = past_epochs + epoch # adding past epochs to avoid overwriting older checkpoints in case of resume
         train_epoch(epoch, args, model, device, train_loader, optimizer)
         test_epoch(model, device, test_loader)
-        torch.save(model.state_dict(), f"/workspace/mnist_cnn_epoch_{str(epoch_save_num)}.pth")
-
-    # Hint: Save the model after each epoch
+        torch.save(model.state_dict(), "/workspace/model_checkpoint.pth")
 
 if __name__ == "__main__":
     main()
